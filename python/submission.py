@@ -55,9 +55,8 @@ class MySubmission(Submission):
        prediction for the supplied row of data
     """
     def get_prediction(self, data):
-        x = [float(x) if x else 0 for x in data.split(',')]
-        bidSize0 = x[45]
-        askSize0 = x[15]
+        bidSize0 = data[45]
+        askSize0 = data[15]
         return 0.0025 * (bidSize0 - askSize0)
 
     """
@@ -68,7 +67,6 @@ class MySubmission(Submission):
     def run_submission(self):
 
         self.debug_print("Use the print function `self.debug_print(...)` for debugging purposes, do NOT use the default `print(...)`")
-
         while(True):
             """
             NOTE: Only one of (get_next_data_as_string, get_next_data_as_list, get_next_data_as_numpy_array) can be used
@@ -76,10 +74,10 @@ class MySubmission(Submission):
 
             Uncomment the one that will be used, and comment the others.
             """
+            data = self.get_next_data_as_list()
 
-            # data = self.get_next_data_as_list()
             # data = self.get_next_data_as_numpy_array()
-            data = self.get_next_data_as_string()
+            # data = self.get_next_data_as_string()
 
             prediction = self.get_prediction(data)
 

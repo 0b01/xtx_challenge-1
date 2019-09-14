@@ -54,9 +54,8 @@ class Submission():
         if self.DATA_ROW_IN_TRANSIT:
             raise GetNextDataCalledTwiceException("get_next_data_as_list() can only be called once for every prediction made.")
         
-
         raw_data_list = input().split(",")
-    
+
         # replace empty spots with NaN
         data_list = []
         for order in raw_data_list:
