@@ -14,21 +14,24 @@ askSize = rawData[:, 15:30]
 bidRate = rawData[:, 30:45]
 bidSize = rawData[:, 45:60]
 
-askRateMean = np.nanmean(askRate, axis=1)
-# askRateMedian = np.nanmedian(askRate, axis=1)
-askRateStd = np.nanstd(askRate, axis=1)
+# askRateMean = np.nanmean(askRate, axis=1)
+# askRateStd = np.nanstd(askRate, axis=1, ddof=1)
+askRateMedian = np.nanmedian(askRate, axis=1)
+askRateIQR = np.nanquantile(askRate, 0.75, axis=1) - np.nanquantile(askRate, 0.25, axis=1)
 
-askSizeMean = np.nanmean(askSize, axis=1)
-# askSizeMedian = np.nanmedian(askSize, axis=1)
-askSizeStd = np.nanstd(askSize, axis=1)
+# askSizeMean = np.nanmean(askSize, axis=1)
+# askSizeStd = np.nanstd(askSize, axis=1, ddof=1)
+askSizeMedian = np.nanmedian(askSize, axis=1)
+askSizeIQR = np.nanquantile(askSize, 0.75, axis=1) - np.nanquantile(askSize, 0.25, axis=1)
 
-bidRateMean = np.nanmean(bidRate, axis=1)
-# bidRateMedian = np.nanmedian(bidRate, axis=1)
-bidRateStd = np.nanstd(bidRate, axis=1)
+# bidRateMean = np.nanmean(bidRate, axis=1)
+# bidRateStd = np.nanstd(bidRate, axis=1, ddof=1)
+bidRateMedian = np.nanmedian(bidRate, axis=1)
+bidRateIQR = np.nanquantile(bidRate, 0.75, axis=1) - np.nanquantile(bidRate, 0.25, axis=1)
 
 bidSizeMean = np.nanmean(bidSize, axis=1)
+bidSizeStd = np.nanstd(bidSize, axis=1, ddof=1)
 # bidSizeMedian = np.nanmedian(bidSize, axis=1)
-bidSizeStd = np.nanstd(bidSize, axis=1)
 
 # -------- DATA OBSERVATION -------- #
 
