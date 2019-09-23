@@ -10,9 +10,11 @@ def compute_dg(features, labels, quad_u):
         for j in range(i+1, rows):
             if labels[i] != labels[j]:
                 y2 = np.square(features[i, :] - features[j, :])
-                dist = np.sqrt(quad_u.dot(y2))
-                g += dist
-                dg += y2 / (2 * dist)
+                distance = np.sqrt(quad_u.dot(y2))
+                g += distance
+                dg += y2 / distance
+
+    dg = dg / 2
 
     return g, dg
 
@@ -72,3 +74,38 @@ def optimize_metric(features, labels, max_iter=20, alpha=1e-11, tol=1e-1, tol_f=
     g_mat = np.sqrt(np.diag(quad_u))
 
     return g_mat, n_iter
+
+
+def optimizeMetric(features, labels, rho, alpha, lbda, maxIter=20, tol=1e-1, tol_f=1e-3, obj_f=1):
+
+    mu = np.mean(features, axis=1)
+    n, p = features.shape
+
+    aMat = np.ones(p)
+    bMat = np.zeros(p)
+    zMat = aMat - bMat
+
+    nIter = 0
+    converged = False
+    while ~converged and nIter < maxIter:
+
+        aMat =
+
+        zMatNxt = zMat + aMat - bMat
+
+        eps = np.linalg.norm(zMatNxt - zMat, ord='fro') / np.linalg.norm(zMatNxt, ord='fro')
+        if eps < tol:
+            converged = True
+
+        nIter += 1
+        zMat = zMatNxt
+
+    return aMat, mu, nIter
+
+
+def dataOrder(data, y):
+    labels, labelsIdx = np.unique(y, return_index=True)
+
+    dataOrd = 1
+
+    return dataOrd[:, 0:15], dataOrd[:, 15:30], dataOrd[:, 30:45], dataOrd[:, 45:60]
