@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from .tools import optimizeMetric
+from .tools import optimizeMetric, dataOrder
 
 # -------------------------------------- LOAD DATA -------------------------------------- #
 
@@ -11,21 +11,12 @@ df = pd.read_csv('../data-training.csv')
 data = df.values
 print('Data loaded!')
 
-y = data[:, -1]
-n = y.size
-
 # -------------------------------------- DATA ORDERING -------------------------------------- #
 
 print('Organizing Data...')
 
-labels, labelsCntr = np.unique(y, return_counts=True)
-print(labels, labelsCntr)
-
-
-askRate = data[:, 0:15]
-askSize = data[:, 15:30]
-bidRate = data[:, 30:45]
-bidSize = data[:, 45:60]
+askRate, askSize, bidRate, bidSize, labels = dataOrder(data)
+n = labels.size
 
 print('Data Organized!')
 
@@ -50,8 +41,6 @@ features[:, 7] = - np.nansum(bidSizePrbDst * np.log(bidSizePrbDst), axis=1)     
 features[:, 8] = bidRate[:, 0]  # bidRate0
 features[:, 9] = np.choose(np.nanargmax(bidSize, axis=1), bidRate.T)    # bidRatePtl
 
-mu = np.mean(features, axis=1)
-
 print('Data pre-processed!')
 
 # -------------------------------------- DATA OBSERVATION -------------------------------------- #
@@ -68,7 +57,19 @@ print('Data pre-processed!')
 
 # -------------------------------------- TRAINING -------------------------------------- #
 
-aMat, , = optimizeMetric(features, y, )
+print('Training Metric...')
 
-# clusterMedians = np.zeros
-# for i in range(clusters.size):
+aMat, mu, nIter = optimizeMetric(features, labels, rho=1, alpha=2, lbda=5)
+
+print('Metric trained!')
+
+# -------------------------------------- SAVE MODEL -------------------------------------- #
+
+print('Saving Model...')
+
+np.save('./matrix.npy', aMat)
+np.save('./features_mean.npy', mu)
+
+print('Model saved!')
+
+print('All done!!')

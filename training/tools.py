@@ -35,7 +35,7 @@ def compute_sim_feat(features, labels):
 
 
 # Iterative Projection steps 1 & 2.
-def iter_project(quad_u, y2, f, obj_f):
+def iterativeProjection(quad_u, y2, f, obj_f):
 
     lam = (f - obj_f) / (y2.dot(y2))
     quad_u_nxt = quad_u - y2 * lam
@@ -47,19 +47,19 @@ def iter_project(quad_u, y2, f, obj_f):
 
 
 # Gradient ascent algorithm with Iterative Projection.
-def optimize_metric(features, labels, max_iter=20, alpha=1e-11, tol=1e-1, tol_f=1e-3, obj_f=1):
+def gradAscentWithIterativeProjection(features, labels, alpha, maxIter=20, tol=1e-1, tol_f=1e-3, obj_f=1):
     cols = features.shape[1]
 
     quad_u = np.ones(cols) / cols
 
     y2 = compute_sim_feat(features, labels)
-    eps, n_iter, g = 1, 0, 0.0
-    while eps > tol and n_iter < max_iter:
+    eps, nIter, g = 1, 0, 0.0
+    while eps > tol and nIter < maxIter:
         f = quad_u.dot(y2)
         print('g = %.2f' % g, '/ f = %.2f' % f)
         print('Projecting...')
         while np.abs(f - obj_f) > tol_f:
-            quad_u = iter_project(quad_u, y2, f, obj_f)
+            quad_u = iterativeProjection(quad_u, y2, f, obj_f)
             f = quad_u.dot(y2)
 
         print('Ascending...')
@@ -69,11 +69,11 @@ def optimize_metric(features, labels, max_iter=20, alpha=1e-11, tol=1e-1, tol_f=
         eps = np.linalg.norm(quad_u_nxt - quad_u) / np.linalg.norm(quad_u)
         quad_u = quad_u_nxt
 
-        n_iter += 1
+        nIter += 1
 
-    g_mat = np.sqrt(np.diag(quad_u))
+    gMat = np.sqrt(np.diag(quad_u))
 
-    return g_mat, n_iter
+    return gMat, nIter
 
 
 def optimizeMetric(features, labels, rho, alpha, lbda, maxIter=20, tol=1e-1, tol_f=1e-3, obj_f=1):
@@ -82,14 +82,18 @@ def optimizeMetric(features, labels, rho, alpha, lbda, maxIter=20, tol=1e-1, tol
     n, p = features.shape
 
     aMat = np.ones(p)
-    bMat = np.zeros(p)
+    oMat, bMat = np.zeros(p), np.zeros(p)
     zMat = aMat - bMat
+
+    lbda = lbda / rho
 
     nIter = 0
     converged = False
     while ~converged and nIter < maxIter:
 
-        aMat =
+        aMat = gradAscentWithIterativeProjection(features, labels, alpha)
+
+        bMat = np.sign(aMat + zMat) * np.maximum((aMat + zMat) - lbda, oMat)
 
         zMatNxt = zMat + aMat - bMat
 
@@ -103,9 +107,9 @@ def optimizeMetric(features, labels, rho, alpha, lbda, maxIter=20, tol=1e-1, tol
     return aMat, mu, nIter
 
 
-def dataOrder(data, y):
+def dataOrder(data):
     labels, labelsIdx = np.unique(y, return_index=True)
 
     dataOrd = 1
 
-    return dataOrd[:, 0:15], dataOrd[:, 15:30], dataOrd[:, 30:45], dataOrd[:, 45:60]
+    return dataOrd[:, 0:15], dataOrd[:, 15:30], dataOrd[:, 30:45], dataOrd[:, 45:60], dataOrd[:, -1]
