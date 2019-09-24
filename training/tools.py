@@ -5,7 +5,7 @@ from tabulate import tabulate
 
 # Compute gradient of sum of distances between points of dissimilar classes. Returns g and dg
 def computeGrad(features, labels, aMat):
-    print('-- Undergoing Gradient Ascent...')
+    print('--- Undergoing Gradient Ascent...')
 
     rows, cols = features.shape
 
@@ -16,7 +16,7 @@ def computeGrad(features, labels, aMat):
                 vectorDiff = features[i, :] - features[j, :]
                 vectorDist = np.sqrt(vectorDiff.dot(aMat.dot(vectorDiff.T)))
                 g += vectorDist
-                dg += y2 / vectorDist
+                dg += np.outer(vectorDiff, vectorDiff) / vectorDist
 
     g = g / rows
     dg = dg / (2 * rows)
@@ -47,10 +47,11 @@ def computeSimilarityMatrix(features, labels):
 def iterativeProjection(aMat, simMat, fThreshold=1, maxIter=50, tol=1e-3):
     print('--- Undergoing Iterative Projection...')
 
-    f = compute
-
     w, vMat = np.linalg.eigh(aMat)
     simMatOrtho = np.transpose(vMat).dot(simMat.dot(vMat))
+
+    lMat = vMat.dot(np.diag(np.sqrt(w)))
+    f = np.trace(lMat.dot(simMat.dot(lMat.T)))
 
     eps, nIter = 1, 0
     while eps > tol and nIter < maxIter:
@@ -60,10 +61,10 @@ def iterativeProjection(aMat, simMat, fThreshold=1, maxIter=50, tol=1e-3):
 
         # Second Part
         idx = np.transpose(np.argwhere(wNxt < 0))[0]
-        w[idx] = 0
+        wNxt[idx] = 0
 
-        wNxt =
         eps = np.linalg.norm(wNxt - w) / np.linalg.norm(wNxt)
+
         w = wNxt
 
         nIter += 1
@@ -89,7 +90,7 @@ def optimizeMetric(features, labels, alpha, fThreshold=1, maxIter=40, tol=1e-3):
     eps, nIter, g = 1, 0, 0.0
     while eps > tol and nIter < maxIter:
 
-        aMat, f = iterativeProjection(aMat, fThreshold)
+        aMat, f = iterativeProjection(aMat, simMat, fThreshold)
 
         g, dg = computeGrad(features, labels, aMat)
 
@@ -97,13 +98,13 @@ def optimizeMetric(features, labels, alpha, fThreshold=1, maxIter=40, tol=1e-3):
         eps = np.linalg.norm(aMatNxt - aMat, ord='fro') / np.linalg.norm(aMatNxt, ord='fro')
         aMat = aMatNxt
 
-        print('-> g(A) = %.2f' % g, '/ f(A) = %.2f' % f)
+        print('-> At step ', nIter, ': Difference g(A) = %.2f' % g, '/ Similarity f(A) = %.2f' % f)
 
         nIter += 1
 
     print('Metric trained!')
 
-    return aMat, featuresMean, nIter
+    return aMat, featuresMean
 
 
 def dataOrder(data):
