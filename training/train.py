@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from .tools import optimizeMetric, dataOrder
+from tools import optimizeMetric, dataOrder, dataDisplay
 
 # -------------------------------------- LOAD DATA -------------------------------------- #
 
@@ -13,17 +13,12 @@ print('Data loaded!')
 
 # -------------------------------------- DATA ORDERING -------------------------------------- #
 
-print('Organizing Data...')
-
 askRate, askSize, bidRate, bidSize, labels = dataOrder(data)
-n = labels.size
-
-print('Data Organized!')
 
 # -------------------------------------- PRE-PROCESS DATA -------------------------------------- #
 
 p = 10
-features = np.zeros([n, p])
+features = np.zeros([labels.size, p])
 
 print('Pre-processing Data...')
 
@@ -44,24 +39,12 @@ features[:, 9] = np.choose(np.nanargmax(bidSize, axis=1), bidRate.T)    # bidRat
 print('Data pre-processed!')
 
 # -------------------------------------- DATA OBSERVATION -------------------------------------- #
-# from tabulate import tabulate
 
-# ticks = ['Day', 'askRate0', 'askRate14', 'bidRate0', 'bidRate14', 'y']
-# rows = []
-
-# for i in range(n):
-#     if y[i] == -0.25:
-#         rows.append([i+1, askRate0[i], askSize0[i], bidRate0[i], bidSize0[i], y[i]])
-
-# print(tabulate(rows, headers=ticks))
+# dataDisplay(features, labels)
 
 # -------------------------------------- TRAINING -------------------------------------- #
 
-print('Training Metric...')
-
 aMat, mu, nIter = optimizeMetric(features, labels, rho=1, alpha=2, lbda=5)
-
-print('Metric trained!')
 
 # -------------------------------------- SAVE MODEL -------------------------------------- #
 
