@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from tools import optimizeMetric, dataOrder, dataDisplay
+from tools import optimizeMetric, dataOrder, dataDisplay, modelSave
 
 # -------------------------------------- LOAD DATA -------------------------------------- #
 
@@ -44,15 +44,10 @@ print('Data pre-processed!')
 
 # -------------------------------------- TRAINING -------------------------------------- #
 
-aMat, mu, nIter = optimizeMetric(features, labels, rho=1, alpha=2, lbda=5)
+aMat, mu, nIter = optimizeMetric(features, labels, alpha=1e-2, maxIter=1, tol=1e-4)
 
 # -------------------------------------- SAVE MODEL -------------------------------------- #
 
-print('Saving Model...')
-
-np.save('./matrix.npy', aMat)
-np.save('./features_mean.npy', mu)
-
-print('Model saved!')
+modelSave(aMat, mu)
 
 print('All done!!')

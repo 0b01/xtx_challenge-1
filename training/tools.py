@@ -5,9 +5,11 @@ from tabulate import tabulate
 
 # Compute gradient of sum of distances between points of dissimilar classes. Returns g and dg
 def computeGrad(features, labels, aMat):
+    print('-- Undergoing Gradient Ascent...')
+
     rows, cols = features.shape
 
-    g, dg = 0, np.zeros(cols)
+    g, dg = 0, np.zeros([cols, cols])
     for i in range(rows-1):
         for j in range(i+1, rows):
             if labels[i] != labels[j]:
@@ -23,49 +25,57 @@ def computeGrad(features, labels, aMat):
 
 
 # Compute sum of element-wise square of differences between points of similar classes.
-def compute_sim_feat(features, labels):
+def computeSimilarityMatrix(features, labels):
+    print('Computing Similarity Matrix...')
+
     rows, cols = features.shape
 
-    y2 = np.zeros(cols)
+    simMat = np.zeros([cols, cols])
     for i in range(rows-1):
         for j in range(i+1, rows):
             if labels[i] == labels[j]:
-                y2 += np.square(features[i, :] - features[j, :])
+                simMat += np.outer((features[i, :] - features[j, :]), (features[i, :] - features[j, :]))
             else:
                 break
 
-    return y2
+    print('Similarity Matrix Computed!')
+
+    return simMat
 
 
 # Iterative Projection steps 1 & 2.
-def iterativeProjection(aMat, y2, f, fThreshold, maxIter=50, tol=1e-3):
+def iterativeProjection(aMat, simMat, fThreshold=1, maxIter=50, tol=1e-3):
     print('--- Undergoing Iterative Projection...')
+
+    f = compute
+
+    w, vMat = np.linalg.eigh(aMat)
+    simMatOrtho = np.transpose(vMat).dot(simMat.dot(vMat))
 
     eps, nIter = 1, 0
     while eps > tol and nIter < maxIter:
         # First Part
-        lam = (f - fThreshold) / (y2.dot(y2))
-        aMatNxt = aMat - y2 * lam
+        rho = (f - fThreshold) / (y2.dot(y2))
+        wNxt = w - y2 * rho
 
         # Second Part
-        w, vMat = np.linalg.eigh(aMatNxt)
-
-        idx = np.transpose(np.argwhere(w < 0))[0]
+        idx = np.transpose(np.argwhere(wNxt < 0))[0]
         w[idx] = 0
 
-        aMatNxt = vMat.dot(np.diag(w).dot(vMat.T))
-        eps = np.linalg.norm(aMatNxt - aMat, ord='fro') / np.linalg.norm(aMatNxt, ord='fro')
-        aMat = aMatNxt
+        wNxt =
+        eps = np.linalg.norm(wNxt - w) / np.linalg.norm(wNxt)
+        w = wNxt
 
         nIter += 1
 
+    aMat = vMat.dot(np.diag(w).dot(vMat.T))
     print('Iterative Projection Done!')
 
-    return aMat
+    return aMat, f
 
 
 # Gradient ascent algorithm with Iterative Projection.
-def optimizeMetric(features, labels, alpha, maxIter=40, tol=1e-3, tol_f=1e-3, fThreshold=1):
+def optimizeMetric(features, labels, alpha, fThreshold=1, maxIter=40, tol=1e-3):
     print('Training Metric...')
 
     featuresMean = np.mean(features, axis=1)
@@ -75,19 +85,19 @@ def optimizeMetric(features, labels, alpha, maxIter=40, tol=1e-3, tol_f=1e-3, fT
 
     aMat = np.eye(cols) / cols
 
-    y2 = compute_sim_feat(features, labels)
+    simMat = computeSimilarityMatrix(features, labels)
     eps, nIter, g = 1, 0, 0.0
     while eps > tol and nIter < maxIter:
-        f = aMat.dot(y2)
-        print('-> g(A) = %.2f' % g, '/ f(A) = %.2f' % f)
-        aMat = iterativeProjection(aMat, y2, f, fThreshold)
 
-        print('-- Ascending...')
+        aMat, f = iterativeProjection(aMat, fThreshold)
+
         g, dg = computeGrad(features, labels, aMat)
 
-        aMatNxt = aMat + alpha * dg
+        aMatNxt = aMat + alpha * dg     # Gradient Update
         eps = np.linalg.norm(aMatNxt - aMat, ord='fro') / np.linalg.norm(aMatNxt, ord='fro')
         aMat = aMatNxt
+
+        print('-> g(A) = %.2f' % g, '/ f(A) = %.2f' % f)
 
         nIter += 1
 
@@ -121,3 +131,12 @@ def dataDisplay(features, labels):
                      features[i, 5], features[i, 6], features[i, 7], features[i, 8], features[i, 9]])
 
     print(tabulate(rows, headers=cols))
+
+
+def modelSave(aMat, mu):
+    print('Saving Model...')
+
+    np.save('./matrix.npy', aMat)
+    np.save('./features_mean.npy', mu)
+
+    print('Model saved!')
