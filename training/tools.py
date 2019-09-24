@@ -34,9 +34,12 @@ def computeSimilarityMatrix(features, labels):
     for i in range(rows-1):
         for j in range(i+1, rows):
             if labels[i] == labels[j]:
-                simMat += np.outer((features[i, :] - features[j, :]), (features[i, :] - features[j, :]))
+                vectorDiff = features[i, :] - features[j, :]
+                simMat += np.outer(vectorDiff, vectorDiff)
             else:
                 break
+
+    simMat = simMat / rows
 
     print('Similarity Matrix Computed!')
 
@@ -47,29 +50,24 @@ def computeSimilarityMatrix(features, labels):
 def iterativeProjection(aMat, simMat, fThreshold=1, maxIter=50, tol=1e-3):
     print('--- Undergoing Iterative Projection...')
 
-    w, vMat = np.linalg.eigh(aMat)
-    simMatOrtho = np.transpose(vMat).dot(simMat.dot(vMat))
-
-    lMat = vMat.dot(np.diag(np.sqrt(w)))
-    f = np.trace(lMat.dot(simMat.dot(lMat.T)))
-
+    f = 0
     eps, nIter = 1, 0
     while eps > tol and nIter < maxIter:
-        # First Part
+        w, vMat = np.linalg.eigh(aMat)
+        simMatOrtho = np.transpose(vMat).dot(simMat.dot(vMat))
+
+        lMat = vMat.dot(np.diag(np.sqrt(w)))
+        f = np.trace(lMat.dot(simMat.dot(lMat.T)))
+
         rho = (f - fThreshold) / (y2.dot(y2))
-        wNxt = w - y2 * rho
-
-        # Second Part
-        idx = np.transpose(np.argwhere(wNxt < 0))[0]
-        wNxt[idx] = 0
-
+        wNxt = np.maximum(w - rho * np.diag(simMatOrtho), 0)
         eps = np.linalg.norm(wNxt - w) / np.linalg.norm(wNxt)
-
         w = wNxt
+
+        aMat = vMat.dot(np.diag(w).dot(vMat.T))
 
         nIter += 1
 
-    aMat = vMat.dot(np.diag(w).dot(vMat.T))
     print('Iterative Projection Done!')
 
     return aMat, f
@@ -129,7 +127,7 @@ def dataDisplay(features, labels):
 
     for i in range(n):
         rows.append([labels[i], features[i, 0], features[i, 1], features[i, 2], features[i, 3], features[i, 4],
-                     features[i, 5], features[i, 6], features[i, 7], features[i, 8], features[i, 9]])
+                                features[i, 5], features[i, 6], features[i, 7], features[i, 8], features[i, 9]])
 
     print(tabulate(rows, headers=cols))
 
