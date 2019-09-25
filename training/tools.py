@@ -8,13 +8,13 @@ def computeGrad(features, labels, aMat):
     print('--- Undergoing Gradient Ascent...')
 
     rows, cols = features.shape
-
+    delta = 1e-5
     g, dg = 0, np.zeros([cols, cols])
     for i in range(rows-1):
         for j in range(i+1, rows):
             if labels[i] != labels[j]:
                 vectorDiff = features[i, :] - features[j, :]
-                vectorDist = np.sqrt(vectorDiff.dot(aMat.dot(vectorDiff.T)))
+                vectorDist = np.maximum(np.sqrt(vectorDiff.dot(aMat.dot(vectorDiff.T))), delta)
                 g += vectorDist
                 dg += np.outer(vectorDiff, vectorDiff) / vectorDist
 
@@ -47,13 +47,13 @@ def computeSimilarityMatrix(features, labels):
 
 
 # Iterative Projection steps 1 & 2.
-def iterativeProjection(aMat, simMat, fThreshold=1, maxIter=100, tol=1e-3):
+def iterativeProjection(aMat, simMat, fThreshold=1, maxIter=200, tol=1e-4):
     print('--- Undergoing Iterative Projection...')
 
-    f, converged, nIter = 0.0, False, 0
     w, vMat = np.linalg.eigh(aMat)
     simMatOrthoDiag = np.diag(np.transpose(vMat).dot(simMat.dot(vMat)))
 
+    f, converged, nIter = 0.0, False, 0
     while ~converged and nIter < maxIter:
         f = w.dot(simMatOrthoDiag)
         rho = np.maximum((f - fThreshold) / (simMatOrthoDiag.dot(simMatOrthoDiag)), 0)
@@ -79,8 +79,12 @@ def iterativeProjection(aMat, simMat, fThreshold=1, maxIter=100, tol=1e-3):
 def optimizeMetric(features, labels, alpha, fThreshold=1, maxIter=40, tol=1e-3):
     print('Training Metric...')
 
-    featuresMean = np.mean(features, axis=1)
+    featuresMean = np.mean(features, axis=0)
+    print(featuresMean.shape)
     features = features - featuresMean
+
+    featuresStd = np.std(features, axis=0, ddof=1)
+    features = np.divide(features, featuresStd)
 
     rows, cols = features.shape
 
@@ -107,7 +111,7 @@ def optimizeMetric(features, labels, alpha, fThreshold=1, maxIter=40, tol=1e-3):
 
     print('Metric trained!')
 
-    return aMat, featuresMean
+    return aMat, featuresMean, featuresStd
 
 
 def dataOrder(data):
@@ -137,10 +141,11 @@ def dataDisplay(features, labels):
     print(tabulate(rows, headers=cols))
 
 
-def modelSave(aMat, mu):
+def modelSave(aMat, featuresMean, featuresStd):
     print('Saving Model...')
 
     np.save('./matrix.npy', aMat)
-    np.save('./features_mean.npy', mu)
+    np.save('./features_mean.npy', featuresMean)
+    np.save('./features_std.npy', featuresStd)
 
     print('Model saved!')

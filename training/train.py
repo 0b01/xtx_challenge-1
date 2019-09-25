@@ -6,8 +6,8 @@ from tools import optimizeMetric, dataOrder, dataDisplay, modelSave
 # -------------------------------------- LOAD DATA -------------------------------------- #
 
 print('Loading Data...')
-# df = pd.read_csv('../data.csv')
-df = pd.read_csv('../data-training.csv')
+df = pd.read_csv('../data.csv')
+# df = pd.read_csv('../data-training.csv')
 data = df.values
 print('Data loaded!')
 
@@ -44,10 +44,13 @@ print('Data pre-processed!')
 
 # -------------------------------------- TRAINING -------------------------------------- #
 
-aMat, mu, nIter = optimizeMetric(features, labels, alpha=1e-2, maxIter=1, tol=1e-4)
+aMat, featuresMean, featuresStd = optimizeMetric(features, labels, alpha=1e-4, maxIter=1, tol=1e-4)
 
 # -------------------------------------- SAVE MODEL -------------------------------------- #
 
-modelSave(aMat, mu)
+modelSave(aMat, featuresMean, featuresStd)
+
+aMat = np.load('./matrix.npy', 'r')
+print(aMat)
 
 print('All done!!')
