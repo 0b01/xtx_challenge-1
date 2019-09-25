@@ -47,26 +47,28 @@ def computeSimilarityMatrix(features, labels):
 
 
 # Iterative Projection steps 1 & 2.
-def iterativeProjection(aMat, simMat, fThreshold=1, maxIter=50, tol=1e-3):
+def iterativeProjection(aMat, simMat, fThreshold=1, maxIter=100, tol=1e-3):
     print('--- Undergoing Iterative Projection...')
 
-    f = 0
-    eps, nIter = 1, 0
-    while eps > tol and nIter < maxIter:
-        w, vMat = np.linalg.eigh(aMat)
-        simMatOrtho = np.transpose(vMat).dot(simMat.dot(vMat))
+    f, converged, nIter = 0.0, False, 0
+    w, vMat = np.linalg.eigh(aMat)
+    simMatOrthoDiag = np.diag(np.transpose(vMat).dot(simMat.dot(vMat)))
 
-        lMat = vMat.dot(np.diag(np.sqrt(w)))
-        f = np.trace(lMat.dot(simMat.dot(lMat.T)))
+    while ~converged and nIter < maxIter:
+        f = w.dot(simMatOrthoDiag)
+        rho = np.maximum((f - fThreshold) / (simMatOrthoDiag.dot(simMatOrthoDiag)), 0)
 
-        rho = (f - fThreshold) / (y2.dot(y2))
-        wNxt = np.maximum(w - rho * np.diag(simMatOrtho), 0)
+        wNxt = np.maximum(w - rho * simMatOrthoDiag, 0)
+
         eps = np.linalg.norm(wNxt - w) / np.linalg.norm(wNxt)
+        if eps < tol:
+            converged = True
+
         w = wNxt
 
-        aMat = vMat.dot(np.diag(w).dot(vMat.T))
-
         nIter += 1
+
+    aMat = vMat.dot(np.diag(w).dot(vMat.T))
 
     print('Iterative Projection Done!')
 
@@ -85,15 +87,18 @@ def optimizeMetric(features, labels, alpha, fThreshold=1, maxIter=40, tol=1e-3):
     aMat = np.eye(cols) / cols
 
     simMat = computeSimilarityMatrix(features, labels)
-    eps, nIter, g = 1, 0, 0.0
-    while eps > tol and nIter < maxIter:
+    g, converged, nIter = 0.0, False, 0
+    while ~converged and nIter < maxIter:
 
         aMat, f = iterativeProjection(aMat, simMat, fThreshold)
 
         g, dg = computeGrad(features, labels, aMat)
-
         aMatNxt = aMat + alpha * dg     # Gradient Update
+
         eps = np.linalg.norm(aMatNxt - aMat, ord='fro') / np.linalg.norm(aMatNxt, ord='fro')
+        if eps < tol:
+            converged = True
+
         aMat = aMatNxt
 
         print('-> At step ', nIter, ': Difference g(A) = %.2f' % g, '/ Similarity f(A) = %.2f' % f)
