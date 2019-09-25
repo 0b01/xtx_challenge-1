@@ -26,7 +26,7 @@ def computeGrad(features, labels, aMat):
 
 # Compute sum of element-wise square of differences between points of similar classes.
 def computeSimilarityMatrix(features, labels):
-    print('Computing Similarity Matrix...')
+    print('--- Computing Similarity Matrix...')
 
     rows, cols = features.shape
 
@@ -41,7 +41,7 @@ def computeSimilarityMatrix(features, labels):
 
     simMat = simMat / rows
 
-    print('Similarity Matrix Computed!')
+    print('-- Similarity Matrix Computed!')
 
     return simMat
 
@@ -70,24 +70,24 @@ def iterativeProjection(aMat, simMat, fThreshold=1, maxIter=200, tol=1e-4):
 
     aMat = vMat.dot(np.diag(w).dot(vMat.T))
 
-    print('Iterative Projection Done!')
+    print('--- Iterative Projection Done!')
 
     return aMat, f
 
 
 # Gradient ascent algorithm with Iterative Projection.
 def optimizeMetric(features, labels, alpha, fThreshold=1, maxIter=40, tol=1e-3):
-    print('Training Metric...')
 
+    print('Standardizing features...')
     featuresMean = np.mean(features, axis=0)
-    print(featuresMean.shape)
     features = features - featuresMean
 
     featuresStd = np.std(features, axis=0, ddof=1)
     features = np.divide(features, featuresStd)
+    print('Features standardized!')
 
+    print('Training Metric:')
     rows, cols = features.shape
-
     aMat = np.eye(cols) / cols
 
     simMat = computeSimilarityMatrix(features, labels)
@@ -104,10 +104,9 @@ def optimizeMetric(features, labels, alpha, fThreshold=1, maxIter=40, tol=1e-3):
             converged = True
 
         aMat = aMatNxt
-
-        print('-> At step ', nIter, ': Difference g(A) = %.2f' % g, '/ Similarity f(A) = %.2f' % f)
-
         nIter += 1
+
+        print('--> At step ', nIter, ': Difference g(A) = %.2f' % g, '/ Similarity f(A) = %.2f' % f)
 
     print('Metric trained!')
 
