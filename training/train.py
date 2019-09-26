@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from tools import optimizeMetric, dataOrder, dataDisplay, modelSave
+from tools import optimizeMetric, dataSample, dataOrder, dataDisplay, modelSave
 
 # -------------------------------------- LOAD DATA -------------------------------------- #
 
@@ -13,7 +13,11 @@ print('Data loaded!')
 
 # -------------------------------------- DATA ORDERING -------------------------------------- #
 
-askRate, askSize, bidRate, bidSize, labels = dataOrder(data)
+dataSpl = dataSample(data)
+
+# -------------------------------------- DATA ORDERING -------------------------------------- #
+
+askRate, askSize, bidRate, bidSize, labels = dataOrder(dataSpl)
 
 # -------------------------------------- PRE-PROCESS DATA -------------------------------------- #
 
@@ -49,7 +53,5 @@ aMat, featuresMean, featuresStd = optimizeMetric(features, labels, alpha=1e-5, m
 # -------------------------------------- SAVE MODEL -------------------------------------- #
 
 modelSave(aMat, featuresMean, featuresStd)
-
-aMat = np.load('./matrix.npy', 'r')
 
 print('All done!!')

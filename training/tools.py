@@ -4,11 +4,10 @@ from tabulate import tabulate
 
 
 # Compute gradient of sum of distances between points of dissimilar classes. Returns g and dg
-def computeGrad(features, labels, aMat):
+def computeGrad(features, labels, aMat, delta=1e-5):
     print('--- Undergoing Gradient Ascent...')
 
     rows, cols = features.shape
-    delta = 1e-5
     g, dg = 0, np.zeros([cols, cols])
     for i in range(rows-1):
         for j in range(i+1, rows):
@@ -111,6 +110,21 @@ def optimizeMetric(features, labels, alpha, fThreshold=1, maxIter=40, tol=1e-3):
     print('Metric trained!')
 
     return aMat, featuresMean, featuresStd
+
+
+def dataSample(data, pct=0.01):
+
+    print('Sampling Data...')
+    n = data[:, 0].size
+    m = int(np.ceil(n * pct))
+
+    idx = np.random.permutation(np.arange(n))[0:m]
+
+    dataSpl = data[idx, :]
+
+    print('Data sampled!')
+
+    return dataSpl
 
 
 def dataOrder(data):
