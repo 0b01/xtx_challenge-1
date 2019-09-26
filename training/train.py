@@ -52,7 +52,7 @@ print('Done!')
 
 # -------------------------------------- SAVE MODEL -------------------------------------- #
 
-modelSave(aMat, featuresMean, featuresStd)
+modelSave(masterMachina, './model.pkl')
 
 # -------------------------------------- TESTING MODEL -------------------------------------- #
 

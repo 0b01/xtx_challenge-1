@@ -1,4 +1,5 @@
 import numpy as np
+import pickle
 
 from tabulate import tabulate
 
@@ -154,11 +155,10 @@ def dataDisplay(features, labels):
     print(tabulate(rows, headers=cols))
 
 
-def modelSave(aMat, featuresMean, featuresStd):
+def modelSave(obj, filename):
     print('Saving Model...')
 
-    np.save('./matrix.npy', aMat)
-    np.save('./features_mean.npy', featuresMean)
-    np.save('./features_std.npy', featuresStd)
+    with open(filename, 'wb') as output:
+        pickle.dump(obj, output, pickle.HIGHEST_PROTOCOL)
 
     print('Model saved!')
