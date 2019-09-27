@@ -113,32 +113,6 @@ def optimizeMetric(features, labels, alpha, fThreshold=1, maxIter=40, tol=1e-3):
     return aMat, featuresMean, featuresStd
 
 
-def dataSample(data, pct=0.1):
-
-    print('Sampling Data...')
-    n = data[:, 0].size
-    m = int(np.ceil(n * pct))
-
-    idx = np.random.permutation(np.arange(n))[0:m]
-
-    dataSpl = data[idx, :]
-
-    print('Data sampled!')
-
-    return dataSpl
-
-
-def dataOrder(data):
-    print('Ordering Data...')
-
-    idx = np.argsort(data[:, -1])
-    dataOrd = data[idx, :]
-
-    print('Data Ordered!')
-
-    return dataOrd[:, 0:15], dataOrd[:, 15:30], dataOrd[:, 30:45], dataOrd[:, 45:60], dataOrd[:, -1]
-
-
 def dataDisplay(features, labels):
     print('Formatting Data for display...')
 
@@ -155,11 +129,15 @@ def dataDisplay(features, labels):
     print(tabulate(rows, headers=cols))
 
 
-def preProcessData(data):
+def preProcessData(data, ratio=0.8):
     p = 14
-    features = np.zeros([data[:, 0].size, p])
+    n = data[:, 0].size
+    features = np.zeros([n, p])
 
-    askRate, askSize, bidRate, bidSize, labels = dataOrder(data)
+    askRate, askSize, bidRate, bidSize, labels = data[:, 0:15], data[:, 15:30], \
+                                                 data[:, 30:45], data[:, 45:60], data[:, -1]
+
+    print('Pre-processing Data...')
 
     features[:, 0] = askSize[:, 0]                                                      # askSize0
     features[:, 1] = np.nanmax(askSize, axis=1)                                         # askSizePtl
@@ -179,7 +157,45 @@ def preProcessData(data):
     features[:, 12] = bidRate[:, 0]                                                     # bidRate0
     features[:, 13] = np.choose(np.nanargmax(bidSize, axis=1), bidRate.T)               # bidRatePtl
 
-    return features, labels
+    print('Data pre-processed!')
+
+    print('Partitioning Data...')
+
+    idx = np.random.permutation(np.arange(n))
+    border = int(np.ceil(ratio * n))
+    featuresTrain, labelsTrain = features[idx[0:border], :], labels[idx[0:border]]
+    featuresTest, labelsTest = features[idx[border:], :], labels[idx[border:]]
+
+    return featuresTrain, labelsTrain, featuresTest, labelsTest
+
+
+def featuresQuery(features, labels, labels0, labels1):
+    p = features.shape[1]
+
+    features0 = np.empty([0, p])
+    for i in range(labels0.size):
+        idx = np.argwhere(labels == labels0[i])
+        features0 = np.append(features0, [features[idx, :]], axis=0)
+
+    features1 = np.empty([0, p])
+    for i in range(labels1.size):
+        idx = np.argwhere(labels == labels1[i])
+        features1 = np.append(features1, [features[idx, :]], axis=0)
+
+    return features0, features1
+
+
+def featuresSample(features, labels, pct=0.2):
+
+    print('Sampling Features...')
+    n = features[:, 0].size
+
+    idx = np.random.permutation(np.arange(n))[0:int(np.ceil(n * pct))]
+    featuresSpl, labelsSpl = features[idx, :], labels[idx]
+
+    print('Data sampled!')
+
+    return featuresSpl, labelsSpl
 
 
 def modelSave(obj, filename):

@@ -18,7 +18,7 @@ print('Data loaded!')
 
 # -------------------------------------- PRE-PROCESS DATA -------------------------------------- #
 
-features, labels = preProcessData(data)
+featuresTrain, labelsTrain, featuresTest, labelsTest = preProcessData(data)
 
 # -------------------------------------- DATA OBSERVATION -------------------------------------- #
 
@@ -28,10 +28,16 @@ features, labels = preProcessData(data)
 
 print('Training...')
 
-clf = LinearSVC(random_state=0, dual=False, max_iter=300)
+clf = LinearSVC(random_state=0, dual=False, max_iter=400)
 
-y = np.heaviside(labels, 1)
-decision = clf.fit(features, y)
+tree = []
+m = 10
+
+for k in range(m):
+    y = np.heaviside(labels, 1)
+    decision = clf.fit(features, y)
+
+
 print(decision.score(features, y))
 
 print('Done!')
@@ -40,6 +46,7 @@ print('Done!')
 
 # -------------------------------------- TESTING MODEL -------------------------------------- #
 
-# print('Testing Random Feature Sampling Machine...')
-# test_machine(face_data_testing, randsmp, n_p)
-# print('Done!')
+prediction = np.zeros(labelsTest.size)
+for i in range(prediction.size):
+    for k in range(m):
+
