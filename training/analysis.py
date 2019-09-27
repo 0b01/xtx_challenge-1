@@ -4,14 +4,18 @@ from scipy.stats import mode
 
 
 def testModel(forrest, features, y):
-    forrestSize = len(forrest)
-    n = y.size
-    prediction = np.zeros(n)
+
+    print('Testing model...')
+
+    n, forrestSize = y.size, len(forrest)
+
+    votes = np.zeros([n, forrestSize])
     for k in range(forrestSize):
+        votes[:, k] = forrest[k].predict(features)
 
-
+    print(votes)
+    prediction = mode(votes, axis=1)[0]
     accuracy = np.sum(prediction) / n
 
-    return accuracy
-
+    print('Accuracy of model is', accuracy)
 
