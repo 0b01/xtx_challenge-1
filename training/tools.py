@@ -113,7 +113,7 @@ def optimizeMetric(features, labels, alpha, fThreshold=1, maxIter=40, tol=1e-3):
     return aMat, featuresMean, featuresStd
 
 
-def dataSample(data, pct=0.01):
+def dataSample(data, pct=0.1):
 
     print('Sampling Data...')
     n = data[:, 0].size
@@ -155,10 +155,48 @@ def dataDisplay(features, labels):
     print(tabulate(rows, headers=cols))
 
 
+def preProcessData(data):
+    p = 14
+    features = np.zeros([data[:, 0].size, p])
+
+    askRate, askSize, bidRate, bidSize, labels = dataOrder(data)
+
+    features[:, 0] = askSize[:, 0]                                                      # askSize0
+    features[:, 1] = np.nanmax(askSize, axis=1)                                         # askSizePtl
+    askSizePrbDst = (askSize.T / np.nansum(askSize, axis=1)).T
+    features[:, 2] = - np.nansum(askSizePrbDst * np.log(askSizePrbDst), axis=1)         # askSizeEntropy
+    features[:, 3] = np.nanmedian(askSize, axis=1)                                      # askSizeMedian
+    features[:, 4] = np.nanmedian(np.abs(askSize.T - features[:, 3].T).T, axis=1)       # askSizeMAD
+    features[:, 5] = askRate[:, 0]                                                      # askRate0
+    features[:, 6] = np.choose(np.nanargmax(askSize, axis=1), askRate.T)                # askRatePtl
+
+    features[:, 7] = bidSize[:, 0]                                                      # bidSize0
+    features[:, 8] = np.nanmax(bidSize, axis=1)                                         # bidSizePtl
+    bidSizePrbDst = (bidSize.T / np.nansum(bidSize, axis=1)).T
+    features[:, 9] = - np.nansum(bidSizePrbDst * np.log(bidSizePrbDst), axis=1)         # bidSizeEntropy
+    features[:, 10] = np.nanmedian(bidSize, axis=1)                                     # bidSizeMedian
+    features[:, 11] = np.nanmedian(np.abs(bidSize.T - features[:, 10].T).T, axis=1)     # bidSizeMAD
+    features[:, 12] = bidRate[:, 0]                                                     # bidRate0
+    features[:, 13] = np.choose(np.nanargmax(bidSize, axis=1), bidRate.T)               # bidRatePtl
+
+    return features, labels
+
+
 def modelSave(obj, filename):
     print('Saving Model...')
 
-    with open(filename, 'wb') as output:
-        pickle.dump(obj, output, pickle.HIGHEST_PROTOCOL)
+    with open(filename, 'wb') as outfile:
+        pickle.dump(obj, outfile, pickle.HIGHEST_PROTOCOL)
 
     print('Model saved!')
+
+
+def modelLoad(filename):
+    print('Loading Model...')
+
+    with open(filename, 'rb') as infile:
+        obj = pickle.load(infile)
+
+    print('Model loaded!')
+
+    return obj
