@@ -23,7 +23,6 @@ print('Data loaded!')
 # -------------------------------------- PRE-PROCESS DATA -------------------------------------- #
 
 featuresTrain, labelsTrain, featuresTest, labelsTest = preProcessData(data)
-yTest = np.heaviside(labelsTest, 1)
 
 # -------------------------------------- TRAINING MODEL -------------------------------------- #
 
@@ -31,15 +30,13 @@ if trainBool:
     print('Training...')
     forrestSize, forrest = 10, []
 
-    classes = np.unique(labelsTrain)
     for k in range(forrestSize):
         print('-- Training model', k + 1, '...')
-        clf = LinearSVC(random_state=0, dual=False, max_iter=400)
-        featuresTrainSpl, labelsTrainSpl = featuresSample(featuresTrain, labelsTrain)
+        clf = LinearSVC(class_weight='balanced', random_state=0, dual=False, max_iter=1000)
+        featuresTrainSpl, labelsTrainSpl = featuresSample(featuresTrain, labelsTrain, pct=0.1)
         # featuresSort(
-        yTrainSpl = np.heaviside(labelsTrainSpl, 1)     # labels
-        clf.fit(featuresTrainSpl, yTrainSpl)
-        print('Score for this tree is ', clf.score(featuresTest, yTest))
+        clf.fit(featuresTrainSpl, labelsTrainSpl)
+        print('Score for this tree is ', clf.score(featuresTest, labelsTest))
         forrest.append(clf)
 
     print('Done!')
@@ -54,4 +51,4 @@ else:
 
 # -------------------------------------- TESTING MODEL -------------------------------------- #
 
-testModel(forrest, featuresTest, yTest)
+testModel(forrest, featuresTest, labelsTest)
