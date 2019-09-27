@@ -13,9 +13,10 @@ def testModel(forrest, features, y):
     for k in range(forrestSize):
         votes[:, k] = forrest[k].predict(features)
 
-    print(votes)
     prediction = mode(votes, axis=1)[0]
-    accuracy = np.sum(prediction) / n
+    
+    print(prediction.shape, y.shape)
+    accuracy = 1 - np.count_nonzero(y - prediction) / n
 
     print('Accuracy of model is', accuracy)
 
