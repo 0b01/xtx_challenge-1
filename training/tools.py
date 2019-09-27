@@ -169,6 +169,13 @@ def preProcessData(data, ratio=0.8):
     return featuresTrain, labelsTrain, featuresTest, labelsTest
 
 
+def featuresSort(features, labels):
+    idx = np.argsort(labels)
+    featuresSorted, labelsSorted = features[idx, :], labels[idx]
+
+    return featuresSorted, labelsSorted
+
+
 def featuresQuery(features, labels, labels0, labels1):
     p = features.shape[1]
 

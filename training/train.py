@@ -4,9 +4,8 @@ import matplotlib.pyplot as plt
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
-
-from tools import dataSample, dataDisplay, modelSave, preProcessData
-# from analysis import rndFeatSplMachina
+from tools import featuresSort, featuresQuery, featuresSample, modelSave, preProcessData
+from analysis import testModel
 
 # -------------------------------------- LOAD DATA -------------------------------------- #
 
@@ -20,33 +19,27 @@ print('Data loaded!')
 
 featuresTrain, labelsTrain, featuresTest, labelsTest = preProcessData(data)
 
-# -------------------------------------- DATA OBSERVATION -------------------------------------- #
-
-# dataDisplay(features, labels)
-
 # -------------------------------------- TRAINING MODEL -------------------------------------- #
 
 print('Training...')
-
 clf = LinearSVC(random_state=0, dual=False, max_iter=400)
+forrestSize, forrest = 10, []
 
-tree = []
-m = 10
-
-for k in range(m):
-    y = np.heaviside(labels, 1)
-    decision = clf.fit(features, y)
-
-
-print(decision.score(features, y))
+classes = np.unique(labelsTrain)
+for k in range(forrestSize):
+    featuresTrainSpl, labelsTrainSpl = featuresSort(featuresSample(featuresTrain, labelsTrain))
+    yTrainSpl = np.heaviside(labelsTrainSpl, 1)     # labels
+    forrest.append(clf.fit(featuresTrainSpl, yTrainSpl))
 
 print('Done!')
 
 # -------------------------------------- SAVE MODEL -------------------------------------- #
 
+outfile = './forrest.pkl'
+modelSave(forrest, outfile)
+
 # -------------------------------------- TESTING MODEL -------------------------------------- #
 
-prediction = np.zeros(labelsTest.size)
-for i in range(prediction.size):
-    for k in range(m):
+yTest = np.heaviside(labelsTest, 1)
+testModel(forrest, featuresTest, yTest)
 
