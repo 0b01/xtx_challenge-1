@@ -205,6 +205,13 @@ def featuresSample(features, labels, pct=0.2):
     return featuresSpl, labelsSpl
 
 
+def labelEncode(labels):
+    n = labels.size
+    labelsEncoded = 4 * labels
+
+    return labelEncoded
+
+
 def modelSave(obj, filename):
     print('Saving Model...')
 
